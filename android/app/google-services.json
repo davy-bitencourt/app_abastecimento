@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "195202631708",
+    "project_id": "app-abastecimento-davy",
+    "storage_bucket": "app-abastecimento-davy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195202631708:android:3a2eb44cf88582564bb7d9",
+        "android_client_info": {
+          "package_name": "com.example.app_abastecimento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLIcAxVOpvHdIOaVQrgEeHjlLJKbkEaas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
