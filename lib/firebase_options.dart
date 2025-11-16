@@ -73,4 +73,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'app-abastecimento-davy.firebasestorage.app',
     measurementId: 'G-KSRJPQV2J0',
   );
+
 }

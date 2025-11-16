@@ -12,7 +12,16 @@
           "package_name": "com.example.app_abastecimento"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "195202631708-f69qqe3hsbmej69e9brqj2q0ebd8la4k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.app_abastecimento",
+            "certificate_hash": "c2bed8687c94e1b8ccda9e8655fba15447a29259"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCLIcAxVOpvHdIOaVQrgEeHjlLJKbkEaas"
