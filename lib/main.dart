@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'firebase_options.dart';
-import 'core/themes/app_theme.dart';
+import 'core/themes/theme_notifier.dart';
 
 import 'services/firebase/firebase_service.dart';
 import 'data/repositories/firebase_user_repo.dart';
@@ -61,6 +61,12 @@ class AppBootstrap extends StatelessWidget {
             Provider<FuelRepository>(
               create: (_) => FuelRepository(FirebaseFirestore.instance),
             ),
+
+            ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+
+            ChangeNotifierProvider<FirebaseService>.value(
+              value: ProviderScope.store!,
+            ),
           ],
           child: const MyApp(),
         );
@@ -103,11 +109,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseService = context.watch<FirebaseService>();
+    final theme = context.watch<ThemeNotifier>();
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'App Abastecimento',
-      theme: appTheme,
+      theme: theme.currentTheme,
       routerConfig: _router(firebaseService),
     );
   }

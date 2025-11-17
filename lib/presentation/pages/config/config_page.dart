@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../widgets/app_drawer.dart';
+import 'package:provider/provider.dart';
+import '../../../core/themes/theme_notifier.dart';
 import '../../widgets/app_appbar.dart';
+import '../../widgets/app_drawer.dart';
 
 class ConfigPage extends StatelessWidget {
   const ConfigPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+
     return Scaffold(
       appBar: const AppAppBar(title: 'Configurações'),
       drawer: const AppDrawer(),
@@ -18,10 +22,14 @@ class ConfigPage extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
+
           ListTile(
             leading: const Icon(Icons.dark_mode),
             title: const Text('Tema escuro'),
-            trailing: Switch(value: false, onChanged: (val) {}),
+            trailing: Switch(
+              value: theme.isDark,
+              onChanged: (val) => theme.toggleTheme(val),
+            ),
           ),
         ],
       ),
