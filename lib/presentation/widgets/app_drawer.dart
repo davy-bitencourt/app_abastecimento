@@ -9,22 +9,45 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebase = context.read<FirebaseService>();
+
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(child: Center(child: Text('Menu'))),
+
+          ListTile(
+            title: const Text('Home'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/');
+            },
+          ),
+
           ListTile(
             title: const Text('Meus Veículos'),
-            onTap: () => context.push('/vehicles'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/vehicles');
+            },
           ),
+
           ListTile(
             title: const Text('Registrar Abastecimento'),
-            onTap: () => context.push('/register'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/register');
+            },
           ),
+
           ListTile(
             title: const Text('Histórico de Abastecimentos'),
-            onTap: () => context.push('/history'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/history');
+            },
           ),
+
           ListTile(
             title: const Text('Sair'),
             onTap: () async {
@@ -32,6 +55,7 @@ class AppDrawer extends StatelessWidget {
 
               if (!context.mounted) return;
 
+              Navigator.pop(context);
               context.go('/login');
             },
           ),

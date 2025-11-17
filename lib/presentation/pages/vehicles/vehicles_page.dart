@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/app_appbar.dart';
 import '../../../data/models/vehicle.dart';
 import '../../../data/repositories/vehicle_repository.dart';
 import '../../../services/firebase/firebase_service.dart';
@@ -24,21 +25,30 @@ class _VehiclesPageState extends State<VehiclesPage> {
     super.initState();
     repo = context.read<VehicleRepository>();
     firebase = context.read<FirebaseService>();
-    _load();
+
+    // evita travar o initState com I/O
+    Future.microtask(_load);
   }
 
   Future<void> _load() async {
     final uid = firebase.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null || !mounted) return;
+
     setState(() => loading = true);
-    vehicles = await repo.listVehicles(uid);
-    setState(() => loading = false);
+
+    final list = await repo.listVehicles(uid);
+
+    if (!mounted) return;
+    setState(() {
+      vehicles = list;
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Meus Veículos')),
+      appBar: const AppAppBar(title: 'Veículos'),
       drawer: const AppDrawer(),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -55,7 +65,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
                     icon: const Icon(Icons.delete),
                     onPressed: () async {
                       await repo.deleteVehicle(firebase.currentUser!.uid, v.id);
-                      _load();
+                      if (mounted) _load();
                     },
                   ),
                 );
@@ -70,6 +80,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
 
   void _openAddDialog(BuildContext ctx) {
     final formKey = GlobalKey<FormState>();
+
     final modelo = TextEditingController();
     final marca = TextEditingController();
     final placa = TextEditingController();
@@ -88,35 +99,30 @@ class _VehiclesPageState extends State<VehiclesPage> {
                 TextFormField(
                   controller: modelo,
                   decoration: const InputDecoration(labelText: 'Modelo'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                  validator: _required,
                 ),
                 TextFormField(
                   controller: marca,
                   decoration: const InputDecoration(labelText: 'Marca'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                  validator: _required,
                 ),
                 TextFormField(
                   controller: placa,
                   decoration: const InputDecoration(labelText: 'Placa'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                  validator: _required,
                 ),
                 TextFormField(
                   controller: ano,
                   decoration: const InputDecoration(labelText: 'Ano'),
                   keyboardType: TextInputType.number,
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                  validator: _required,
                 ),
                 TextFormField(
                   controller: tipo,
                   decoration: const InputDecoration(
                     labelText: 'Tipo Combustível',
                   ),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                  validator: _required,
                 ),
               ],
             ),
@@ -143,9 +149,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
               await repo.addVehicle(firebase.currentUser!.uid, v);
 
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-              if (!mounted) return;
-
-              _load();
+              if (mounted) _load();
             },
             child: const Text('Salvar'),
           ),
@@ -153,4 +157,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
       ),
     );
   }
+
+  String? _required(String? v) =>
+      (v == null || v.isEmpty) ? 'Campo obrigatório' : null;
 }

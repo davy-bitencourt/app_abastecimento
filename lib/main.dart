@@ -6,41 +6,67 @@ import 'package:go_router/go_router.dart';
 import 'firebase_options.dart';
 import 'core/themes/app_theme.dart';
 
-// Services e Repositórios
 import 'services/firebase/firebase_service.dart';
 import 'data/repositories/firebase_user_repo.dart';
 
-// Pages
 import 'presentation/pages/login/login_page.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/vehicles/vehicles_page.dart';
+import 'presentation/pages/register_fuel/register_fuel_page.dart';
+import 'presentation/pages/history/history_page.dart';
+import 'presentation/pages/config/config_page.dart';
+import 'data/repositories/vehicle_repository.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  runApp(const Root());
+  runApp(const AppBootstrap());
 }
 
-class Root extends StatelessWidget {
-  const Root({super.key});
+class AppBootstrap extends StatelessWidget {
+  const AppBootstrap({super.key});
+
+  Future<void> _initApp(BuildContext context) async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    final repo = FirebaseUserRepo();
+    final service = FirebaseService(repo);
+    service.init();
+
+    ProviderScope.store = service;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<FirebaseService>(
-          create: (_) {
-            final repo = FirebaseUserRepo();
-            final service = FirebaseService(repo);
-            service.init();
-            return service;
-          },
-        ),
-      ],
-      child: const MyApp(),
+    return FutureBuilder(
+      future: _initApp(context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
+
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider<FirebaseService>.value(
+              value: ProviderScope.store!,
+            ),
+            Provider<VehicleRepository>(
+              create: (context) =>
+                  VehicleRepository(context.read<FirebaseService>()),
+            ),
+          ],
+          child: const MyApp(),
+        );
+      },
     );
   }
+}
+
+class ProviderScope {
+  static FirebaseService? store;
 }
 
 class MyApp extends StatelessWidget {
@@ -50,21 +76,23 @@ class MyApp extends StatelessWidget {
     return GoRouter(
       initialLocation: '/',
       debugLogDiagnostics: true,
-
       refreshListenable: auth,
-
       routes: [
         GoRoute(path: '/', builder: (_, __) => const HomePage()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
         GoRoute(path: '/vehicles', builder: (_, __) => const VehiclesPage()),
+        GoRoute(
+          path: '/register',
+          builder: (_, __) => const RegisterFuelPage(),
+        ),
+        GoRoute(path: '/history', builder: (_, __) => const HistoryPage()),
+        GoRoute(path: '/configuracoes', builder: (_, __) => const ConfigPage()),
       ],
-
       redirect: (context, state) {
         final loggedIn = auth.currentUser != null;
-        final isOnLoginPage = state.uri.toString() == '/login';
-
-        if (!loggedIn && !isOnLoginPage) return '/login';
-        if (loggedIn && isOnLoginPage) return '/';
+        final onLoginPage = state.uri.toString() == '/login';
+        if (!loggedIn && !onLoginPage) return '/login';
+        if (loggedIn && onLoginPage) return '/';
         return null;
       },
     );
@@ -73,7 +101,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseService = context.watch<FirebaseService>();
-
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'App Abastecimento',
