@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'firebase_options.dart';
 import 'core/themes/app_theme.dart';
@@ -12,10 +13,10 @@ import 'data/repositories/firebase_user_repo.dart';
 import 'presentation/pages/login/login_page.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/vehicles/vehicles_page.dart';
-import 'presentation/pages/register_fuel/register_fuel_page.dart';
 import 'presentation/pages/history/history_page.dart';
 import 'presentation/pages/config/config_page.dart';
 import 'data/repositories/vehicle_repository.dart';
+import 'data/repositories/fuel_repository.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +31,8 @@ class AppBootstrap extends StatelessWidget {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    final repo = FirebaseUserRepo();
-    final service = FirebaseService(repo);
+    final userRepo = FirebaseUserRepo();
+    final service = FirebaseService(userRepo);
     service.init();
 
     ProviderScope.store = service;
@@ -53,9 +54,12 @@ class AppBootstrap extends StatelessWidget {
             ChangeNotifierProvider<FirebaseService>.value(
               value: ProviderScope.store!,
             ),
+
             Provider<VehicleRepository>(
-              create: (context) =>
-                  VehicleRepository(context.read<FirebaseService>()),
+              create: (_) => VehicleRepository(FirebaseFirestore.instance),
+            ),
+            Provider<FuelRepository>(
+              create: (_) => FuelRepository(FirebaseFirestore.instance),
             ),
           ],
           child: const MyApp(),
@@ -81,18 +85,16 @@ class MyApp extends StatelessWidget {
         GoRoute(path: '/', builder: (_, __) => const HomePage()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
         GoRoute(path: '/vehicles', builder: (_, __) => const VehiclesPage()),
-        GoRoute(
-          path: '/register',
-          builder: (_, __) => const RegisterFuelPage(),
-        ),
         GoRoute(path: '/history', builder: (_, __) => const HistoryPage()),
         GoRoute(path: '/configuracoes', builder: (_, __) => const ConfigPage()),
       ],
       redirect: (context, state) {
         final loggedIn = auth.currentUser != null;
         final onLoginPage = state.uri.toString() == '/login';
+
         if (!loggedIn && !onLoginPage) return '/login';
         if (loggedIn && onLoginPage) return '/';
+
         return null;
       },
     );
@@ -101,6 +103,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseService = context.watch<FirebaseService>();
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'App Abastecimento',

@@ -25,14 +25,12 @@ class _VehiclesPageState extends State<VehiclesPage> {
     super.initState();
     repo = context.read<VehicleRepository>();
     firebase = context.read<FirebaseService>();
-
-    // evita travar o initState com I/O
     Future.microtask(_load);
   }
 
   Future<void> _load() async {
     final uid = firebase.currentUser?.uid;
-    if (uid == null || !mounted) return;
+    if (uid == null) return;
 
     setState(() => loading = true);
 
@@ -43,6 +41,19 @@ class _VehiclesPageState extends State<VehiclesPage> {
       vehicles = list;
       loading = false;
     });
+  }
+
+  Future<void> _deleteVehicle(Vehicle v) async {
+    await repo.deleteVehicle(firebase.currentUser!.uid, v.id);
+
+    setState(() {
+      vehicles.removeWhere((e) => e.id == v.id);
+    });
+  }
+
+  Future<void> _addVehicle(Vehicle v) async {
+    await repo.addVehicle(firebase.currentUser!.uid, v);
+    _load();
   }
 
   @override
@@ -63,10 +74,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      await repo.deleteVehicle(firebase.currentUser!.uid, v.id);
-                      if (mounted) _load();
-                    },
+                    onPressed: () => _deleteVehicle(v),
                   ),
                 );
               },
@@ -80,7 +88,6 @@ class _VehiclesPageState extends State<VehiclesPage> {
 
   void _openAddDialog(BuildContext ctx) {
     final formKey = GlobalKey<FormState>();
-
     final modelo = TextEditingController();
     final marca = TextEditingController();
     final placa = TextEditingController();
@@ -93,39 +100,38 @@ class _VehiclesPageState extends State<VehiclesPage> {
         title: const Text('Novo veículo'),
         content: Form(
           key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: modelo,
-                  decoration: const InputDecoration(labelText: 'Modelo'),
-                  validator: _required,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: modelo,
+                decoration: const InputDecoration(labelText: 'Modelo'),
+                validator: _required,
+              ),
+              TextFormField(
+                controller: marca,
+                decoration: const InputDecoration(labelText: 'Marca'),
+                validator: _required,
+              ),
+              TextFormField(
+                controller: placa,
+                decoration: const InputDecoration(labelText: 'Placa'),
+                validator: _required,
+              ),
+              TextFormField(
+                controller: ano,
+                decoration: const InputDecoration(labelText: 'Ano'),
+                validator: _required,
+                keyboardType: TextInputType.number,
+              ),
+              TextFormField(
+                controller: tipo,
+                decoration: const InputDecoration(
+                  labelText: 'Tipo Combustível',
                 ),
-                TextFormField(
-                  controller: marca,
-                  decoration: const InputDecoration(labelText: 'Marca'),
-                  validator: _required,
-                ),
-                TextFormField(
-                  controller: placa,
-                  decoration: const InputDecoration(labelText: 'Placa'),
-                  validator: _required,
-                ),
-                TextFormField(
-                  controller: ano,
-                  decoration: const InputDecoration(labelText: 'Ano'),
-                  keyboardType: TextInputType.number,
-                  validator: _required,
-                ),
-                TextFormField(
-                  controller: tipo,
-                  decoration: const InputDecoration(
-                    labelText: 'Tipo Combustível',
-                  ),
-                  validator: _required,
-                ),
-              ],
-            ),
+                validator: _required,
+              ),
+            ],
           ),
         ),
         actions: [
@@ -146,10 +152,9 @@ class _VehiclesPageState extends State<VehiclesPage> {
                 tipoCombustivel: tipo.text,
               );
 
-              await repo.addVehicle(firebase.currentUser!.uid, v);
+              await _addVehicle(v);
 
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-              if (mounted) _load();
             },
             child: const Text('Salvar'),
           ),

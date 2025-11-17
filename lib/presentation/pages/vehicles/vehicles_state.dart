@@ -1,2 +1,0 @@
-// state placeholder
-class DummyState {}

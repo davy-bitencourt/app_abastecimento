@@ -1,20 +1,25 @@
 import '../../data/models/vehicle.dart';
-import '../../../services/firebase/firebase_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class VehicleRepository {
-  final FirebaseService service;
-  VehicleRepository(this.service);
+  final FirebaseFirestore firestore;
+
+  VehicleRepository(this.firestore);
+
+  CollectionReference<Map<String, dynamic>> _col(String uid) {
+    return firestore.collection('users').doc(uid).collection('veiculos');
+  }
 
   Future<List<Vehicle>> listVehicles(String uid) async {
-    final snap = await service.vehiclesRef(uid).get();
+    final snap = await _col(uid).get();
     return snap.docs.map((d) => Vehicle.fromMap(d.id, d.data())).toList();
   }
 
-  Future<void> addVehicle(String uid, Vehicle vehicle) async {
-    await service.vehiclesRef(uid).add(vehicle.toMap());
+  Future<void> addVehicle(String uid, Vehicle v) async {
+    await _col(uid).add(v.toMap());
   }
 
-  Future<void> deleteVehicle(String uid, String vehicleId) async {
-    await service.vehiclesRef(uid).doc(vehicleId).delete();
+  Future<void> deleteVehicle(String uid, String id) async {
+    await _col(uid).doc(id).delete();
   }
 }

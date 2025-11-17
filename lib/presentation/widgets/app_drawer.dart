@@ -33,15 +33,7 @@ class AppDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            title: const Text('Registrar Abastecimento'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/register');
-            },
-          ),
-
-          ListTile(
-            title: const Text('Histórico de Abastecimentos'),
+            title: const Text('Abastecimentos'),
             onTap: () {
               Navigator.pop(context);
               context.push('/history');
