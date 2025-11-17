@@ -45,15 +45,12 @@ class _VehiclesPageState extends State<VehiclesPage> {
 
   Future<void> _deleteVehicle(Vehicle v) async {
     await repo.deleteVehicle(firebase.currentUser!.uid, v.id);
-
-    setState(() {
-      vehicles.removeWhere((e) => e.id == v.id);
-    });
+    if (mounted) _load();
   }
 
   Future<void> _addVehicle(Vehicle v) async {
     await repo.addVehicle(firebase.currentUser!.uid, v);
-    _load();
+    if (mounted) _load();
   }
 
   @override
@@ -105,31 +102,31 @@ class _VehiclesPageState extends State<VehiclesPage> {
             children: [
               TextFormField(
                 controller: modelo,
-                decoration: const InputDecoration(labelText: 'Modelo'),
                 validator: _required,
+                decoration: const InputDecoration(labelText: 'Modelo'),
               ),
               TextFormField(
                 controller: marca,
-                decoration: const InputDecoration(labelText: 'Marca'),
                 validator: _required,
+                decoration: const InputDecoration(labelText: 'Marca'),
               ),
               TextFormField(
                 controller: placa,
-                decoration: const InputDecoration(labelText: 'Placa'),
                 validator: _required,
+                decoration: const InputDecoration(labelText: 'Placa'),
               ),
               TextFormField(
                 controller: ano,
-                decoration: const InputDecoration(labelText: 'Ano'),
                 validator: _required,
+                decoration: const InputDecoration(labelText: 'Ano'),
                 keyboardType: TextInputType.number,
               ),
               TextFormField(
                 controller: tipo,
+                validator: _required,
                 decoration: const InputDecoration(
                   labelText: 'Tipo Combustível',
                 ),
-                validator: _required,
               ),
             ],
           ),

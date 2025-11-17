@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:collection/collection.dart';
 import '../../../data/models/fuel_record.dart';
 import '../../../data/models/vehicle.dart';
 import '../../../data/repositories/fuel_repository.dart';
@@ -9,6 +9,7 @@ import '../../../services/firebase/firebase_service.dart';
 import '../../widgets/app_appbar.dart';
 import '../../widgets/app_drawer.dart';
 
+//tinha esquecido de commitar o hitorico de abastecimentos
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
@@ -53,13 +54,8 @@ class _HistoryPageState extends State<HistoryPage> {
     });
   }
 
-  Vehicle? _vehicleById(String id) {
-    try {
-      return vehicles.firstWhere((v) => v.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
+  Vehicle? _vehicleById(String id) =>
+      vehicles.firstWhereOrNull((v) => v.id == id);
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +86,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         r.id,
                       );
 
-                      if (mounted) _load(); // 🔥 recarrega a lista
+                      if (mounted) _load();
                     },
                   ),
                 );
@@ -145,30 +141,30 @@ class _HistoryPageState extends State<HistoryPage> {
                 ),
                 TextFormField(
                   controller: data,
+                  validator: _required,
                   decoration: const InputDecoration(
                     labelText: 'Data (AAAA-MM-DD)',
                   ),
-                  validator: _required,
                 ),
                 TextFormField(
                   controller: litros,
+                  validator: _required,
                   decoration: const InputDecoration(
                     labelText: 'Litros abastecidos',
                   ),
                   keyboardType: TextInputType.number,
-                  validator: _required,
                 ),
                 TextFormField(
                   controller: valor,
+                  validator: _required,
                   decoration: const InputDecoration(labelText: 'Valor pago'),
                   keyboardType: TextInputType.number,
-                  validator: _required,
                 ),
                 TextFormField(
                   controller: km,
+                  validator: _required,
                   decoration: const InputDecoration(labelText: 'Quilometragem'),
                   keyboardType: TextInputType.number,
-                  validator: _required,
                 ),
                 TextFormField(
                   controller: obs,
@@ -205,7 +201,8 @@ class _HistoryPageState extends State<HistoryPage> {
               await fuelRepo.addFuel(firebase.currentUser!.uid, rec);
 
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-              if (mounted) _load(); // 🔥 atualiza lista automaticamente
+
+              if (mounted) _load();
             },
           ),
         ],
